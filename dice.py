@@ -66,10 +66,10 @@ class Token(NamedTuple):
     type: str
     value: str
 
-
+# TODO(Draco): Validate die token input (no d0s)
 def tokenize_dice(dice: list) -> None:
     # TODO(Draco): Look into replacing print-f formatting with string literal.
-    token_regex = "|".join("(?P<%s>%s)" % pair for pair in ROLL_PARTS)
+    token_regex = "|".join([f"(?P<{pair[0]}>{pair[1]})" for pair in ROLL_PARTS])
     for die in dice:
         for match_object in re.finditer(token_regex, die):
             kind = match_object.lastgroup
