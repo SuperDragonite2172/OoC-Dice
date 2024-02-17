@@ -2,12 +2,55 @@ from argparse import ArgumentParser
 from random import randint
 import re
 from typing import NamedTuple
+from tkinter import *
+from tkinter import ttk
 
 parser = ArgumentParser()
-parser.add_argument("dice", nargs="+")
+parser.add_argument("dice", nargs="*")
 inputs = parser.parse_args()
+line_number = 1
 
-DICE_SIDES = [2, 4, 6, 8, 10, 12, 20, 30, 100]
+def dice_roll(*args):
+    if dice_text.get() == "":
+        return
+    else:
+        rolls = dice_text.get().split()
+        tokens = []
+        for token in tokenize_dice(rolls):
+            tokens.append(token)
+        results = parse_roll(tokens)
+        for i in range(len(rolls)):
+            global line_number
+            roll_output.insert("end", f"[{line_number}] {rolls[i]} => {results[i]}\n")
+            line_number += 1
+        dice_text.set("")
+
+root = Tk()
+root.title("OoC Dice Roller")
+
+frame_input = ttk.Frame(root)
+frame_output = ttk.Frame(root)
+
+label_input = ttk.Label(frame_input, text="Input:")
+dice_text = StringVar()
+dice_input = ttk.Entry(frame_input, textvariable=dice_text)
+
+button_roll = ttk.Button(root, text="Roll Dice", command=dice_roll)
+
+roll_output = Text(frame_output, width = 40, height = 10)
+roll_output_scrollbar = ttk.Scrollbar(frame_output, orient=VERTICAL, command=roll_output.yview)
+roll_output['yscrollcommand'] = roll_output_scrollbar.set
+
+frame_input.grid(row=0, column=0)
+button_roll.grid(row=1, column=0, sticky=(E,W))
+frame_output.grid(row=2, column=0)
+
+label_input.grid(row=0, column=0, sticky=(E))
+dice_input.grid(row=0, column=1, sticky=(E,W))
+roll_output.grid(row=2, column=0, columnspan=2)
+roll_output_scrollbar.grid(row=2, column=2, sticky=(N,S))
+
+root.bind("<Return>", dice_roll)
 
 # TODO(Draco): Implement logging for token output later.
 ROLL_PARTS = [
@@ -66,7 +109,6 @@ def parse_roll(token_list) -> list:
             case "End":
                 # print(f"End")
                 # print(f"Final Result: {eval(stack)}")
-                # TODO(Draco): Replace usage of `eval` with something else.
                 output.append(eval(stack))
                 stack = ""
                 # print("=" * 20)
@@ -76,13 +118,16 @@ def parse_roll(token_list) -> list:
 
 
 def main() -> None:
-    tokens = []
-    for token in tokenize_dice(inputs.dice):
-        tokens.append(token)
-    results = parse_roll(tokens)
-    for i in range(len(inputs.dice)):
-        # TODO(Draco): Add dice results to output
-        print(f"{i + 1}. {inputs.dice[i]} -> {results[i]}")
+    if len(inputs.dice) == 0:
+        root.mainloop()
+    else:
+        tokens = []
+        for token in tokenize_dice(inputs.dice):
+            tokens.append(token)
+        results = parse_roll(tokens)
+        for i in range(len(inputs.dice)):
+            # TODO(Draco): Add dice results to output
+            print(f"{i + 1}. {inputs.dice[i]} => {results[i]}")
 
 
 if __name__ == '__main__':
