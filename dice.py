@@ -8,49 +8,53 @@ from tkinter import ttk
 parser = ArgumentParser()
 parser.add_argument("dice", nargs="*")
 inputs = parser.parse_args()
-line_number = 1
 
-def dice_roll(*args):
-    if dice_text.get() == "":
-        return
-    else:
-        rolls = dice_text.get().split()
-        tokens = []
-        for token in tokenize_dice(rolls):
-            tokens.append(token)
-        results = parse_roll(tokens)
-        for i in range(len(rolls)):
-            global line_number
-            roll_output.insert("end", f"[{line_number}] {rolls[i]} => {results[i]}\n")
-            line_number += 1
-        dice_text.set("")
 
-root = Tk()
-root.title("OoC Dice Roller")
+class Gui(Tk):
+    def __init__(self, *args, **kwargs):
 
-frame_input = ttk.Frame(root)
-frame_output = ttk.Frame(root)
+        super().__init__(*args, **kwargs)
+        self.title("OoC Dice Roller")
 
-label_input = ttk.Label(frame_input, text="Input:")
-dice_text = StringVar()
-dice_input = ttk.Entry(frame_input, textvariable=dice_text)
+        self.frame_input = ttk.Frame(self)
+        self.frame_input.grid(row=0, column=0)
+        self.frame_output = ttk.Frame(self)
+        self.frame_output.grid(row=2, column=0)
+        
+        self.label_input = ttk.Label(self.frame_input, text="Input:")
+        self.label_input.grid(row=0, column=0, sticky=(E))
+        self.dice_text = StringVar()
+        self.dice_input = ttk.Entry(self.frame_input, textvariable=self.dice_text)
+        self.dice_input.grid(row=0, column=1, sticky=(E,W))
+        
+        self.button_roll = ttk.Button(self, text="Roll Dice", command=self.dice_roll)
+        self.button_roll.grid(row=1, column=0, sticky=(E,W))
+        
+        self.roll_output = Text(self.frame_output, width = 40, height = 10)
+        self.roll_output_scrollbar = ttk.Scrollbar(self.frame_output, orient=VERTICAL, command=self.roll_output.yview)
+        self.roll_output['yscrollcommand'] = self.roll_output_scrollbar.set
+        self.roll_output.grid(row=2, column=0, columnspan=2)
+        self.roll_output_scrollbar.grid(row=2, column=2, sticky=(N,S))
 
-button_roll = ttk.Button(root, text="Roll Dice", command=dice_roll)
+        self.bind("<Return>", self.dice_roll)
 
-roll_output = Text(frame_output, width = 40, height = 10)
-roll_output_scrollbar = ttk.Scrollbar(frame_output, orient=VERTICAL, command=roll_output.yview)
-roll_output['yscrollcommand'] = roll_output_scrollbar.set
+        self.line_number = 1
 
-frame_input.grid(row=0, column=0)
-button_roll.grid(row=1, column=0, sticky=(E,W))
-frame_output.grid(row=2, column=0)
-
-label_input.grid(row=0, column=0, sticky=(E))
-dice_input.grid(row=0, column=1, sticky=(E,W))
-roll_output.grid(row=2, column=0, columnspan=2)
-roll_output_scrollbar.grid(row=2, column=2, sticky=(N,S))
-
-root.bind("<Return>", dice_roll)
+    def dice_roll(self, *args):
+        if self.dice_text.get() == "":
+            return
+        else:
+            rolls = self.dice_text.get().split()
+            tokens = []
+            for token in tokenize_dice(rolls):
+                tokens.append(token)
+            results = parse_roll(tokens)
+            for i in range(len(rolls)):
+                # global line_number
+                self.roll_output.insert("end", f"[{self.line_number}] {rolls[i]} => {results[i]}\n")
+                self.line_number += 1
+            self.dice_text.set("")
+        
 
 # TODO(Draco): Implement logging for token output later.
 ROLL_PARTS = [
@@ -65,6 +69,7 @@ ROLL_PARTS = [
 class Token(NamedTuple):
     type: str
     value: str
+
 
 # TODO(Draco): Validate die token input (no d0s)
 def tokenize_dice(dice: list) -> None:
@@ -119,7 +124,8 @@ def parse_roll(token_list) -> list:
 
 def main() -> None:
     if len(inputs.dice) == 0:
-        root.mainloop()
+        gui = Gui()
+        gui.mainloop()
     else:
         tokens = []
         for token in tokenize_dice(inputs.dice):
