@@ -49,8 +49,8 @@ class Gui(Tk):
             for token in tokenize_dice(rolls):
                 tokens.append(token)
             results = parse_roll(tokens)
+            print(results)
             for i in range(len(rolls)):
-                # global line_number
                 self.roll_output.insert("end", f"[{self.line_number}] {rolls[i]} => {results[i]}\n")
                 self.line_number += 1
             self.dice_text.set("")
@@ -71,14 +71,15 @@ class Token(NamedTuple):
     value: str
 
 
-# TODO(Draco): Validate die token input (no d0s)
 def tokenize_dice(dice: list) -> None:
-    # TODO(Draco): Look into replacing print-f formatting with string literal.
     token_regex = "|".join([f"(?P<{pair[0]}>{pair[1]})" for pair in ROLL_PARTS])
     for die in dice:
         for match_object in re.finditer(token_regex, die):
             kind = match_object.lastgroup
             value = match_object.group()
+            if kind == "Die" and int(value.split('d')[1]) == 0:
+                kind = "Number"
+                value = "0"
             yield Token(kind, value)
 
 
