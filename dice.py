@@ -10,6 +10,16 @@ parser.add_argument("dice", nargs="*")
 inputs = parser.parse_args()
 
 
+# TODO(Draco): Implement logging for token output later.
+ROLL_PARTS = [
+    ("Die", r"(\d+)?[dD]\d+"),
+    ("Operation", r"[+\-*/]+"),
+    ("Number", r"\d+"),
+    ("End", r"$"),
+    ("Mismatch", r"."),
+]
+
+
 class Gui(Tk):
     def __init__(self, *args, **kwargs):
 
@@ -54,16 +64,6 @@ class Gui(Tk):
                 self.roll_output.insert("end", f"[{self.line_number}] {rolls[i]} => {results[i]}\n")
                 self.line_number += 1
             self.dice_text.set("")
-        
-
-# TODO(Draco): Implement logging for token output later.
-ROLL_PARTS = [
-    ("Die", r"(\d+)?[dD]\d+"),
-    ("Operation", r"[+\-*/]+"),
-    ("Number", r"\d+"),
-    ("End", r"$"),
-    ("Mismatch", r"."),
-]
 
 
 class Token(NamedTuple):
