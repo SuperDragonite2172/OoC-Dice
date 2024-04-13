@@ -58,10 +58,10 @@ class Gui(Tk):
             tokens = []
             for token in tokenize_dice(rolls):
                 tokens.append(token)
-            results = parse_roll(tokens)
+            results, dice_results = parse_roll(tokens)
             print(results)
             for i in range(len(rolls)):
-                self.roll_output.insert("end", f"[{self.line_number}] {rolls[i]} => {results[i]}\n")
+                self.roll_output.insert("end", f"[{self.line_number}] {rolls[i]} {dice_results[i].rstrip()} => {results[i]}\n")
                 self.line_number += 1
             self.dice_text.set("")
 
@@ -84,8 +84,10 @@ def tokenize_dice(dice: list) -> None:
 
 
 def parse_roll(token_list) -> list:
+    dice = ""
     stack = ""
     output = []
+    output_dice = []
     for token in token_list:
         match token.type:
             case "Die":
@@ -94,16 +96,20 @@ def parse_roll(token_list) -> list:
                 if quantity:
                     # print(f"Quantity: {quantity}")
                     register = 0
+                    die_list = []
                     for die in range(int(quantity)):
                         register2 = randint(1, int(sides))
+                        die_list.append(register2)
                         # print(f"Die Roll: {register2}")
                         register += register2
                     # print(f"Total: {register}")
+                    dice = dice + f"{die_list}"
                     stack = stack + str(register)
                 else:
                     register = randint(1, int(sides))
                     # print(f"Rolled {register}")
                     stack = stack + str(register)
+                    dice = dice + f"[{register}] "
             case "Operation":
                 # print(f"Operation: {token.value}")
                 stack = stack + token.value
@@ -115,12 +121,15 @@ def parse_roll(token_list) -> list:
             case "End":
                 # print(f"End")
                 # print(f"Final Result: {eval(stack)}")
+                # print(dice)
                 output.append(eval(stack))
+                output_dice.append(dice)
                 stack = ""
+                dice = ""
                 # print("=" * 20)
             case _:
                 print(f"Unhandled token: {token}")
-    return output
+    return output, output_dice
 
 
 def main() -> None:
@@ -131,10 +140,9 @@ def main() -> None:
         tokens = []
         for token in tokenize_dice(inputs.dice):
             tokens.append(token)
-        results = parse_roll(tokens)
+        results, dice_results = parse_roll(tokens)
         for i in range(len(inputs.dice)):
-            # TODO(Draco): Add dice results to output
-            print(f"{i + 1}. {inputs.dice[i]} => {results[i]}")
+            print(f"{i + 1}. {inputs.dice[i]} {dice_results[i].rstrip()} => {results[i]}")
 
 
 if __name__ == '__main__':
