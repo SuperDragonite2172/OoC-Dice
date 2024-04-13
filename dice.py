@@ -10,7 +10,6 @@ parser.add_argument("dice", nargs="*")
 inputs = parser.parse_args()
 
 
-# TODO(Draco): Implement logging for token output later.
 ROLL_PARTS = [
     ("Die", r"(\d+)?[dD]\d+"),
     ("Operation", r"[+\-*/]+"),
@@ -94,39 +93,29 @@ def parse_roll(token_list) -> list:
                 register = None
                 quantity, sides = token.value.split('d')
                 if quantity:
-                    # print(f"Quantity: {quantity}")
                     register = 0
                     die_list = []
                     for die in range(int(quantity)):
                         register2 = randint(1, int(sides))
                         die_list.append(register2)
-                        # print(f"Die Roll: {register2}")
                         register += register2
-                    # print(f"Total: {register}")
                     dice = dice + f"{die_list}"
                     stack = stack + str(register)
                 else:
                     register = randint(1, int(sides))
-                    # print(f"Rolled {register}")
                     stack = stack + str(register)
                     dice = dice + f"[{register}] "
             case "Operation":
-                # print(f"Operation: {token.value}")
                 stack = stack + token.value
             case "Number":
-                # print(f"Number: {token.value}")
                 stack = stack + token.value
             case "Mismatch":
                 print(f"Mismatch: {token.value}")
             case "End":
-                # print(f"End")
-                # print(f"Final Result: {eval(stack)}")
-                # print(dice)
                 output.append(eval(stack))
                 output_dice.append(dice)
                 stack = ""
                 dice = ""
-                # print("=" * 20)
             case _:
                 print(f"Unhandled token: {token}")
     return output, output_dice
